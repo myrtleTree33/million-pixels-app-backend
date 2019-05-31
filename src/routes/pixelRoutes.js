@@ -8,8 +8,14 @@ const GREEN = '#00ff00';
 const YELLOW = '#ffff00';
 const BLUE = '#0000ff';
 
-routes.get('/', (req, res) => {
-  return res.json({});
+routes.post('/', async (req, res) => {
+  const { x, y } = req.body;
+  if (!x || !y) {
+    return res.json({});
+  }
+
+  const pixel = await Pixel.findOne({ x, y });
+  return res.json(pixel);
 });
 
 routes.get('/all', async (req, res) => {
