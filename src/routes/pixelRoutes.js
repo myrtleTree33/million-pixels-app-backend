@@ -1,5 +1,11 @@
 import { Router } from 'express';
+import stripeLib from 'stripe';
+
 import Pixel from '../models/Pixel';
+
+const { STRIPE_SECRET_KEY } = process.env;
+
+const stripe = stripeLib(STRIPE_SECRET_KEY);
 
 const routes = Router();
 
@@ -37,7 +43,7 @@ routes.get('/all', async (req, res) => {
 
 routes.post('/purchase', async (req, res, next) => {
   try {
-    const { x, y, weblink, color, customColor } = req.body;
+    const { x, y, weblink, color, customColor, tokenId } = req.body;
     if (!x || !y || !weblink || !color) {
       res.json({
         status: 'failed',
@@ -75,7 +81,18 @@ routes.post('/purchase', async (req, res, next) => {
       });
     }
 
+    const { status } = await stripe.charges.create({
+      amount: 5000,
+      currency: 'usd',
+      description: 'An example charge',
+      source: tokenId
+    });
+
+    console.log(status);
+
+    // Else save pixel
     pixel = await pixel.save();
+
     return res.json(pixel);
   } catch (e) {
     console.log(e);
